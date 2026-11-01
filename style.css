@@ -4687,12 +4687,18 @@ body {
     gap: 11px;
   }
 
-  /* Main content fills full width, shifted for mobile header & bottom nav */
+  /* Main content: position fixed between top header and bottom nav */
+  /* This is the most reliable approach — avoids all calc() issues on mobile browsers */
   .main-content {
-    margin-left: 0;
-    padding-top: 56px;
-    padding-bottom: 64px;
-    height: 100vh;
+    position: fixed;
+    top: 56px;      /* below mobile header */
+    bottom: 64px;   /* above bottom nav bar */
+    left: 0;
+    right: 0;
+    margin: 0;
+    padding: 0;
+    height: auto;
+    overflow: hidden;
   }
 
   /* ── Panel Header ── */
@@ -5350,12 +5356,18 @@ body {
     gap: 11px;
   }
 
-  /* Main content fills full width, shifted for mobile header & bottom nav */
+  /* Main content: position fixed between top header and bottom nav */
+  /* This is the most reliable approach — avoids all calc() issues on mobile browsers */
   .main-content {
-    margin-left: 0;
-    padding-top: 56px;
-    padding-bottom: 64px;
-    height: 100vh;
+    position: fixed;
+    top: 56px;      /* below mobile header */
+    bottom: 64px;   /* above bottom nav bar */
+    left: 0;
+    right: 0;
+    margin: 0;
+    padding: 0;
+    height: auto;
+    overflow: hidden;
   }
 
   /* ── Panel Header ── */
