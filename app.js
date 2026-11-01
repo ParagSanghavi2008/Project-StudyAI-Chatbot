@@ -2455,3 +2455,247 @@ function renderWelcomeHistoryChips() {
   }).join('');
 }
 
+// ════════════════════════════════════════════════
+//  FORGOT & RENEW PASSWORD MANAGEMENT
+// ════════════════════════════════════════════════
+
+function openForgotPasswordModal() {
+  closeLoginModal();
+  const modal = document.getElementById('forgotPasswordModal');
+  if (modal) modal.classList.add('open');
+
+  // Reset to Step 1 (verification)
+  const verifyStep = document.getElementById('forgotStepVerify');
+  const resetStep = document.getElementById('forgotStepReset');
+  if (verifyStep) verifyStep.style.display = 'block';
+  if (resetStep) resetStep.style.display = 'none';
+
+  clearForgotErrors();
+  clearForgotResetErrors();
+
+  state.forgotVerifiedUserId = null;
+  state.forgotVerifiedUserName = null;
+
+  // Pre-fill identifier from login form if already entered
+  const loginIdInput = document.getElementById('loginIdentifier');
+  const forgotIdInput = document.getElementById('forgotIdentifier');
+  if (loginIdInput && forgotIdInput && loginIdInput.value.trim()) {
+    forgotIdInput.value = loginIdInput.value.trim();
+  }
+
+  const nameInput = document.getElementById('forgotStudentName');
+  if (nameInput) {
+    nameInput.value = '';
+    setTimeout(() => {
+      if (forgotIdInput && forgotIdInput.value) nameInput.focus();
+      else if (forgotIdInput) forgotIdInput.focus();
+    }, 180);
+  }
+}
+
+function closeForgotPasswordModal() {
+  const modal = document.getElementById('forgotPasswordModal');
+  if (modal) modal.classList.remove('open');
+  state.forgotVerifiedUserId = null;
+  state.forgotVerifiedUserName = null;
+}
+
+function closeForgotPasswordOnOverlay(e) {
+  if (e.target === document.getElementById('forgotPasswordModal')) {
+    closeForgotPasswordModal();
+  }
+}
+
+function clearForgotErrors() {
+  const nameInput = document.getElementById('forgotStudentName');
+  const idInput = document.getElementById('forgotIdentifier');
+  const err = document.getElementById('forgotVerifyError');
+  if (nameInput) nameInput.classList.remove('input-error');
+  if (idInput) idInput.classList.remove('input-error');
+  if (err) {
+    err.style.display = 'none';
+    err.innerHTML = '';
+  }
+}
+
+function clearForgotResetErrors() {
+  const newPass = document.getElementById('forgotNewPassword');
+  const confPass = document.getElementById('forgotConfirmPassword');
+  const err = document.getElementById('forgotResetError');
+  if (newPass) newPass.classList.remove('input-error');
+  if (confPass) confPass.classList.remove('input-error');
+  if (err) {
+    err.style.display = 'none';
+    err.innerHTML = '';
+  }
+}
+
+function showForgotVerifyError(msg) {
+  const err = document.getElementById('forgotVerifyError');
+  if (err) {
+    err.style.display = 'block';
+    err.innerHTML = msg;
+  }
+  showToast(msg);
+}
+
+function showForgotResetError(msg) {
+  const err = document.getElementById('forgotResetError');
+  if (err) {
+    err.style.display = 'block';
+    err.innerHTML = msg;
+  }
+  showToast(msg);
+}
+
+function handleForgotVerifySubmit(e) {
+  if (e) e.preventDefault();
+  clearForgotErrors();
+
+  const idInput = document.getElementById('forgotIdentifier');
+  const nameInput = document.getElementById('forgotStudentName');
+
+  const rawId = idInput ? idInput.value.trim() : '';
+  const enteredName = nameInput ? nameInput.value.trim() : '';
+
+  if (!rawId) {
+    if (idInput) idInput.classList.add('input-error');
+    showForgotVerifyError('⚠️ Please enter your registered email account or mobile number.');
+    if (idInput) idInput.focus();
+    return;
+  }
+
+  if (!enteredName) {
+    if (nameInput) nameInput.classList.add('input-error');
+    showForgotVerifyError('⚠️ Please enter the registered student name.');
+    if (nameInput) nameInput.focus();
+    return;
+  }
+
+  const normId = rawId.toLowerCase();
+  const users = getAllUsers();
+  const user = users[normId];
+
+  if (!user) {
+    if (idInput) idInput.classList.add('input-error');
+    showForgotVerifyError('❌ No account found with this email or mobile number. Please check for spelling mistakes.');
+    if (idInput) idInput.focus();
+    return;
+  }
+
+  const storedName = (user.name || '').trim();
+
+  // STRICT COMPARISON:
+  // "Ask name before renewing the password , if previous added name is equal to name entered in forgot password then user can change the password , otherwise password cannot be changed"
+  if (storedName.toLowerCase() !== enteredName.toLowerCase()) {
+    if (nameInput) nameInput.classList.add('input-error');
+    showForgotVerifyError('❌ Verification failed: The name entered does not match the student name on this account. Password cannot be changed.');
+    if (nameInput) {
+      nameInput.select();
+      nameInput.focus();
+    }
+    return;
+  }
+
+  // NAME MATCHED! Allow changing password:
+  state.forgotVerifiedUserId = normId;
+  state.forgotVerifiedUserName = user.name;
+
+  document.getElementById('forgotStepVerify').style.display = 'none';
+  document.getElementById('forgotStepReset').style.display = 'block';
+
+  const nameDisplay = document.getElementById('forgotVerifiedStudentName');
+  if (nameDisplay) {
+    nameDisplay.textContent = `Identity Verified: ${user.name} ✅`;
+  }
+
+  const newPassInput = document.getElementById('forgotNewPassword');
+  const confPassInput = document.getElementById('forgotConfirmPassword');
+  if (newPassInput) newPassInput.value = '';
+  if (confPassInput) confPassInput.value = '';
+
+  setTimeout(() => {
+    if (newPassInput) newPassInput.focus();
+  }, 150);
+
+  showToast(`✅ Student name verified! Please set your new password.`, 3500);
+}
+
+function handleForgotResetSubmit(e) {
+  if (e) e.preventDefault();
+  clearForgotResetErrors();
+
+  const normId = state.forgotVerifiedUserId;
+  if (!normId) {
+    showForgotResetError('⚠️ Verification session expired. Please verify your student name again.');
+    document.getElementById('forgotStepVerify').style.display = 'block';
+    document.getElementById('forgotStepReset').style.display = 'none';
+    return;
+  }
+
+  const passInput = document.getElementById('forgotNewPassword');
+  const confInput = document.getElementById('forgotConfirmPassword');
+  const newPass = passInput ? passInput.value.trim() : '';
+  const confPass = confInput ? confInput.value.trim() : '';
+
+  if (!newPass || newPass.length < 4) {
+    if (passInput) passInput.classList.add('input-error');
+    showForgotResetError('⚠️ New password must be at least 4 characters long.');
+    if (passInput) passInput.focus();
+    return;
+  }
+
+  if (newPass !== confPass) {
+    if (confInput) confInput.classList.add('input-error');
+    showForgotResetError('⚠️ Passwords do not match. Please re-enter both password fields.');
+    if (confInput) confInput.focus();
+    return;
+  }
+
+  // Update password in user database
+  const users = getAllUsers();
+  if (!users[normId]) {
+    showForgotResetError('⚠️ Account error. Please try again.');
+    return;
+  }
+
+  users[normId].password = newPass;
+  saveAllUsers(users);
+
+  // Auto-login the user with renewed password and full restored account
+  const user = users[normId];
+  state.auth.isLoggedIn = true;
+  state.auth.identifier = user.identifier;
+  state.auth.name = user.name || 'Student';
+  state.auth.mode = user.mode || 'default';
+  state.auth.theme = user.theme || 'midnight';
+  state.auth.accentColor = user.accentColor || '';
+  state.chatHistory = Array.isArray(user.chatHistory) ? user.chatHistory : [];
+  state.chatSessions = Array.isArray(user.chatSessions) ? user.chatSessions : [];
+  state.activeSessionId = user.activeSessionId || (state.chatSessions[0]?.id || null);
+  state.progress = user.progress || {
+    quizzes: [],
+    topics: [],
+    notesSaved: [],
+    streak: 0,
+    lastStudyDate: null
+  };
+
+  localStorage.setItem(ACTIVE_SESSION_KEY, normId);
+
+  // Restore UI, theme, mode, and records
+  applyTheme(state.auth.theme, state.auth.accentColor);
+  updateModeUI(state.auth.mode);
+  restoreChatHistoryUI();
+  renderProgress();
+  renderAuthUI();
+  updateHistoryBadges();
+  renderWelcomeHistoryChips();
+
+  // Close modals
+  closeForgotPasswordModal();
+  closeLoginModal();
+
+  showToast(`✅ Password renewed successfully! You are logged in as ${user.name}. 🎯`, 5000);
+}
+

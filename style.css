@@ -4294,3 +4294,126 @@ body {
   }
 }
 
+/* ════════════════════════════════════════════════
+   FORGOT & RESET PASSWORD STYLES
+   ════════════════════════════════════════════════ */
+
+.forgot-password-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+.forgot-password-link {
+  background: none;
+  border: none;
+  color: var(--purple-light);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: 6px;
+  text-decoration: underline;
+  opacity: 0.9;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.forgot-password-link:hover {
+  opacity: 1;
+  color: #fff;
+  background: rgba(124, 58, 237, 0.15);
+}
+
+.inline-reset-link {
+  background: none;
+  border: none;
+  color: #60a5fa;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+  font-family: inherit;
+  margin-left: 4px;
+}
+
+.inline-reset-link:hover {
+  color: #93c5fd;
+}
+
+.forgot-password-card {
+  max-width: 480px;
+  width: 95vw;
+}
+
+.forgot-banner-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(124, 58, 237, 0.1);
+  border: 1px solid rgba(124, 58, 237, 0.25);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 1.25rem;
+  font-size: 0.82rem;
+  color: var(--text);
+  line-height: 1.45;
+}
+
+.forgot-banner-tip span {
+  font-size: 1.4rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.forgot-banner-tip strong {
+  display: block;
+  color: var(--purple-light);
+  margin-bottom: 2px;
+}
+
+.forgot-banner-tip p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.forgot-verified-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 1.25rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.verified-icon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+
+.verified-texts strong {
+  display: block;
+  color: #34d399;
+  font-size: 0.95rem;
+  margin-bottom: 2px;
+}
+
+.verified-texts p {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.forgot-actions-row {
+  margin-top: 1.25rem;
+}
+
+.forgot-modal-footer {
+  justify-content: flex-start;
+  padding: 10px 20px;
+  border-top: 1px solid var(--border);
+}

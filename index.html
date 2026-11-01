@@ -549,6 +549,132 @@
     </div>
   </div>
 
+  <!-- FORGOT PASSWORD MODAL -->
+  <div class="modal-overlay" id="forgotPasswordModal" onclick="closeForgotPasswordOnOverlay(event)">
+    <div class="modal-card auth-card forgot-password-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="history-title-row">
+            <span class="history-header-icon">🔑</span>
+            <h2>Reset Password</h2>
+          </div>
+          <p class="modal-subtitle">Verify your registered Student Name to renew your password</p>
+        </div>
+        <button class="modal-close-btn" onclick="closeForgotPasswordModal()" title="Close">&times;</button>
+      </div>
+
+      <div class="modal-body auth-body-pad">
+        <!-- STEP 1: Verify Student Name -->
+        <div id="forgotStepVerify">
+          <div class="forgot-banner-tip">
+            <span>🛡️</span>
+            <div>
+              <strong>Security Verification</strong>
+              <p>For your account security, please enter your registered <strong>Student Name</strong>. If it matches the name on file, you can change your password.</p>
+            </div>
+          </div>
+
+          <form onsubmit="handleForgotVerifySubmit(event)" novalidate>
+            <!-- Account Identifier -->
+            <div class="setting-field">
+              <label for="forgotIdentifier">Email Account or Mobile Number</label>
+              <div class="input-with-icon">
+                <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <input type="text" id="forgotIdentifier" placeholder="e.g. alex@gmail.com or 9876543210" required />
+              </div>
+            </div>
+
+            <!-- Student Name Verification -->
+            <div class="setting-field">
+              <div class="field-label-row">
+                <label for="forgotStudentName">Registered Student Name <span class="required-star">*</span></label>
+              </div>
+              <div class="input-with-icon">
+                <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="8" r="5"></circle>
+                  <path d="M20 21a8 8 0 1 0-16 0"></path>
+                </svg>
+                <input type="text" id="forgotStudentName" placeholder="Enter your registered student name" required oninput="clearForgotErrors()" />
+              </div>
+              <small class="field-tip">Must match the student name previously added to this account</small>
+            </div>
+
+            <!-- Inline Verification Error / Status message -->
+            <div class="auth-error-msg" id="forgotVerifyError" style="display:none;"></div>
+
+            <div class="forgot-actions-row">
+              <button type="submit" class="btn-primary full-width" id="forgotVerifyBtn">
+                <span>Verify Name &amp; Continue →</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- STEP 2: Renew Password (Hidden until Step 1 passes) -->
+        <div id="forgotStepReset" style="display:none;">
+          <div class="forgot-verified-banner" id="forgotVerifiedBanner">
+            <span class="verified-icon">✅</span>
+            <div class="verified-texts">
+              <strong id="forgotVerifiedStudentName">Identity Verified!</strong>
+              <p>Student name verified successfully. You can now create your new password below.</p>
+            </div>
+          </div>
+
+          <form onsubmit="handleForgotResetSubmit(event)" novalidate>
+            <!-- New Password -->
+            <div class="setting-field">
+              <div class="field-label-row">
+                <label for="forgotNewPassword">New Password <span class="required-star">*</span></label>
+                <span class="field-helper">(Min. 4 characters)</span>
+              </div>
+              <div class="input-with-icon auth-password-box">
+                <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <input type="password" id="forgotNewPassword" placeholder="Enter new password (min. 4 chars)" required oninput="clearForgotResetErrors()" />
+                <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('forgotNewPassword', this)">Show</button>
+              </div>
+            </div>
+
+            <!-- Confirm New Password -->
+            <div class="setting-field">
+              <div class="field-label-row">
+                <label for="forgotConfirmPassword">Confirm New Password <span class="required-star">*</span></label>
+              </div>
+              <div class="input-with-icon auth-password-box">
+                <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <input type="password" id="forgotConfirmPassword" placeholder="Re-enter new password" required oninput="clearForgotResetErrors()" />
+                <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('forgotConfirmPassword', this)">Show</button>
+              </div>
+            </div>
+
+            <!-- Inline Reset Error -->
+            <div class="auth-error-msg" id="forgotResetError" style="display:none;"></div>
+
+            <div class="forgot-actions-row">
+              <button type="submit" class="btn-primary full-width" id="forgotResetBtn">
+                <span>Save New Password &amp; Log In</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="modal-footer forgot-modal-footer">
+        <button type="button" class="btn-ghost btn-sm" onclick="closeForgotPasswordModal(); openLoginModal();">
+          ← Back to Sign In
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODE SELECTION ONBOARDING MODAL -->
   <div class="modal-overlay" id="modeModal">
     <div class="modal-card mode-modal-card">
