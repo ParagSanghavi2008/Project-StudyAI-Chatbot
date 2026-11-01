@@ -298,13 +298,37 @@ async function callGroq(prompt, systemInstruction = '') {
 function switchTab(tab) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.mob-nav-item').forEach(n => n.classList.remove('active'));
 
   document.getElementById(`tab-${tab}`).classList.add('active');
   document.getElementById(`nav-${tab}`)?.classList.add('active');
+  document.getElementById(`mob-nav-${tab}`)?.classList.add('active');
 
   state.currentTab = tab;
 
   if (tab === 'progress') renderProgress();
+}
+
+// ── Mobile Sidebar ───────────────────────────────
+function toggleMobileSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const isOpen = sidebar.classList.contains('mobile-open');
+  if (isOpen) {
+    closeMobileSidebar();
+  } else {
+    sidebar.classList.add('mobile-open');
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+function closeMobileSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  sidebar.classList.remove('mobile-open');
+  overlay.classList.remove('active');
+  document.body.style.overflow = '';
 }
 
 // ── Toast ───────────────────────────────────────
