@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="StudyMind AI – Your intelligent study companion. Ask questions, summarize notes, generate quizzes, analyze PDFs, and track your progress."/>
+  <title>StudyMind AI – Smart Study Companion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <circle cx="14" cy="14" r="14" fill="url(#logoGrad)"/>
+          <path d="M8 14c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="14" cy="17" r="2" fill="#fff"/>
+          <defs>
+            <linearGradient id="logoGrad" x1="0" y1="0" x2="28" y2="28">
+              <stop offset="0%" stop-color="#7c3aed"/>
+              <stop offset="100%" stop-color="#2563eb"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <span class="logo-text">StudyMind AI</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" id="nav-chat" onclick="switchTab('chat')" title="AI Chat">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+        </svg>
+        <span>AI Chat</span>
+      </button>
+      <button class="nav-item" id="nav-history" onclick="openChatHistoryModal()" title="Study &amp; Revision History">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span>History</span>
+        <span class="sidebar-history-badge" id="sidebarHistoryBadge" style="display:none;">0</span>
+      </button>
+      <button class="nav-item" id="nav-notes" onclick="switchTab('notes')" title="Notes Summarizer">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+        <span>Summarizer</span>
+      </button>
+      <button class="nav-item" id="nav-quiz" onclick="switchTab('quiz')" title="Quiz Generator">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <span>Quiz</span>
+      </button>
+      <button class="nav-item" id="nav-pdf" onclick="switchTab('pdf')" title="PDF Analyzer">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <path d="M9 15l2 2 4-4"/>
+        </svg>
+        <span>PDF Analyzer</span>
+      </button>
+      <button class="nav-item" id="nav-progress" onclick="switchTab('progress')" title="Progress Tracker">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="20" x2="18" y2="10"/>
+          <line x1="12" y1="20" x2="12" y2="4"/>
+          <line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
+        <span>Progress</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user-block" id="sidebarUserBlock"></div>
+      <button class="nav-item" onclick="openSettings()" title="Settings &amp; Themes">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+        </svg>
+        <span>Settings</span>
+      </button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+
+    <!-- AI CHAT TAB -->
+    <section class="tab-panel active" id="tab-chat">
+      <header class="panel-header">
+        <div class="panel-title">
+          <h1>AI Study Chat</h1>
+          <p>Ask me anything — I'll explain it simply</p>
+        </div>
+        <div class="panel-header-right">
+          <button class="history-header-btn" id="headerHistoryBtn" onclick="openChatHistoryModal()" title="View Chat &amp; Revision History">
+            <svg class="history-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span class="history-label-span">History</span>
+            <span class="history-badge-count" id="headerHistoryCount">0</span>
+          </button>
+          <button class="btn-ghost btn-sm new-chat-btn" id="headerNewChatBtn" onclick="startNewChatSession()" title="Start a fresh study topic">
+            <span>+ New Chat</span>
+          </button>
+          <button class="mode-badge badge-default global-mode-btn" onclick="openModeModal()" title="Current AI Study Mode · Click to change">
+            <span class="mode-icon-span">⚡</span>
+            <span class="mode-label-span">Mode: Default</span>
+          </button>
+          <div class="header-auth-slot"></div>
+          <button class="btn-icon" onclick="clearChat()" title="Clear conversation">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+              <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="chat-container" id="chatContainer">
+        <div class="welcome-block" id="welcomeBlock">
+          <div class="welcome-icon">🧠</div>
+          <div class="welcome-title-row">
+            <h2 id="welcomeGreeting">Hello! I am your Study AI</h2>
+            <button class="btn-ghost btn-sm add-name-prompt-btn" id="addNamePromptBtn" onclick="openSettingsForName()" style="display:none;" title="Add your student name so StudyMind AI addresses you personally">✏️ Add Your Name</button>
+          </div>
+          <div class="welcome-mode-pill" onclick="openModeModal()" title="Click to customize Study Mode">
+            <span class="welcome-mode-icon">⚡</span>
+            <span class="welcome-mode-text">Active Mode: <strong>Default</strong> — Balanced study companion</span>
+            <span class="change-link">Change</span>
+          </div>
+          <p>Ask me any question and I'll give you a clear explanation tailored to your chosen mode.</p>
+          <div class="welcome-history-box" id="welcomeHistoryBox" style="display:none;">
+            <div class="welcome-history-header">
+              <div class="welcome-history-tag">
+                <span class="history-spark-icon">📖</span>
+                <span>Revise Previous Topics</span>
+              </div>
+              <button class="welcome-history-all-link" onclick="openChatHistoryModal()">
+                View All History (<span id="welcomeHistoryCount">0</span>) →
+              </button>
+            </div>
+            <p class="welcome-history-desc">Click any previously studied topic below to quickly revise questions &amp; explanations:</p>
+            <div class="welcome-history-chips" id="welcomeHistoryChips"></div>
+          </div>
+        </div>
+        <div id="chatMessages"></div>
+      </div>
+
+      <div class="chat-input-area">
+        <div class="chat-input-wrapper">
+          <textarea id="chatInput" placeholder="Ask me anything to study…" rows="1" onkeydown="handleChatKey(event)" oninput="autoResize(this)"></textarea>
+          <button class="send-btn" id="sendBtn" onclick="sendChatMessage()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="22" y1="2" x2="11" y2="13"/>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+        </div>
+        <p class="input-hint">⚡ Powered by Groq · GPT-OSS 120B · Ultra-fast · Shift+Enter for new line</p>
+      </div>
+    </section>
+
+    <!-- NOTES SUMMARIZER TAB -->
+    <section class="tab-panel" id="tab-notes">
+      <header class="panel-header">
+        <div class="panel-title">
+          <h1>Notes Summarizer</h1>
+          <p>Paste long notes — get a clean, concise summary</p>
+        </div>
+        <div class="panel-header-right">
+          <button class="history-header-btn" onclick="openChatHistoryModal()" title="View Chat &amp; Revision History">
+            <svg class="history-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span class="history-label-span">History</span>
+          </button>
+          <button class="mode-badge badge-default global-mode-btn" onclick="openModeModal()" title="Current AI Study Mode · Click to change">
+            <span class="mode-icon-span">⚡</span>
+            <span class="mode-label-span">Mode: Default</span>
+          </button>
+          <div class="header-auth-slot"></div>
+          <button class="btn-primary" onclick="summarizeNotes()" id="summarizeBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+            Summarize
+          </button>
+        </div>
+      </header>
+
+      <div class="notes-layout">
+        <div class="notes-input-card">
+          <label class="card-label">📝 Your Notes</label>
+          <textarea id="notesInput" class="notes-textarea" placeholder="Paste your lengthy notes, lecture transcripts, or study material here…&#10;&#10;The AI will convert it into a short, structured summary with key points." oninput="updateWordCount()"></textarea>
+          <div class="notes-meta">
+            <span id="notesWordCount">0 words</span>
+            <button class="btn-ghost" onclick="clearNotes()">Clear</button>
+          </div>
+        </div>
+
+        <div class="notes-output-card">
+          <label class="card-label">✨ AI Summary</label>
+          <div class="notes-output-placeholder" id="notesOutputPlaceholder">
+            <span>📋</span>
+            <p>Your summary will appear here</p>
+          </div>
+          <div class="notes-output" id="notesOutput" style="display:none;"></div>
+          <div class="notes-output-actions" id="notesOutputActions" style="display:none;">
+            <button class="btn-ghost" onclick="copyNotesSummary()">📋 Copy</button>
+            <button class="btn-ghost" onclick="saveNotesToProgress()">💾 Save</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUIZ GENERATOR TAB -->
+    <section class="tab-panel" id="tab-quiz">
+      <header class="panel-header">
+        <div class="panel-title">
+          <h1>Quiz Generator</h1>
+          <p>Generate a custom quiz on any topic</p>
+        </div>
+        <div class="panel-header-right">
+          <button class="history-header-btn" onclick="openChatHistoryModal()" title="View Chat &amp; Revision History">
+            <svg class="history-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span class="history-label-span">History</span>
+          </button>
+          <button class="mode-badge badge-default global-mode-btn" onclick="openModeModal()" title="Current AI Study Mode · Click to change">
+            <span class="mode-icon-span">⚡</span>
+            <span class="mode-label-span">Mode: Default</span>
+          </button>
+          <div class="header-auth-slot"></div>
+        </div>
+      </header>
+
+      <div class="quiz-setup" id="quizSetup">
+        <div class="quiz-config-card">
+          <h2>Configure Your Quiz</h2>
+          <div class="config-grid">
+            <div class="config-field">
+              <label for="quizTopic">Topic</label>
+              <input type="text" id="quizTopic" placeholder="e.g. Photosynthesis, World War II, Python basics…" onkeydown="if(event.key==='Enter') generateQuiz()"/>
+            </div>
+            <div class="config-field">
+              <label for="quizCount">Number of Questions</label>
+              <select id="quizCount">
+                <option value="5">5 Questions</option>
+                <option value="10" selected>10 Questions</option>
+                <option value="15">15 Questions</option>
+              </select>
+            </div>
+            <div class="config-field">
+              <label for="quizDifficulty">Difficulty</label>
+              <select id="quizDifficulty">
+                <option value="easy">Easy</option>
+                <option value="medium" selected>Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn-primary full-width" onclick="generateQuiz()" id="generateQuizBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+            Generate Quiz
+          </button>
+        </div>
+      </div>
+
+      <div class="quiz-active" id="quizActive" style="display:none;">
+        <div class="quiz-header-bar">
+          <div class="quiz-info">
+            <span id="quizTopicDisplay" class="quiz-topic-badge"></span>
+            <span class="quiz-progress-text" id="quizProgressText">Question 1 of 10</span>
+          </div>
+          <div class="quiz-score-display">Score: <span id="liveScore">0</span></div>
+        </div>
+        <div class="quiz-progress-bar">
+          <div class="quiz-progress-fill" id="quizProgressFill"></div>
+        </div>
+        <div class="question-card" id="questionCard">
+          <div class="question-number" id="questionNumber">Q1</div>
+          <p class="question-text" id="questionText"></p>
+          <div class="options-grid" id="optionsGrid"></div>
+          <div class="question-feedback" id="questionFeedback" style="display:none;"></div>
+          <button class="btn-primary" id="nextBtn" onclick="nextQuestion()" style="display:none;">Next Question →</button>
+        </div>
+      </div>
+
+      <div class="quiz-results" id="quizResults" style="display:none;">
+        <div class="results-card">
+          <div class="results-emoji" id="resultsEmoji">🎉</div>
+          <h2 id="resultsTitle">Quiz Complete!</h2>
+          <div class="results-score" id="resultsScore">8/10</div>
+          <p class="results-percent" id="resultsPercent">80%</p>
+          <div class="results-breakdown" id="resultsBreakdown"></div>
+          <div class="results-actions">
+            <button class="btn-primary" onclick="retakeQuiz()">Retake Quiz</button>
+            <button class="btn-ghost" onclick="newQuiz()">New Topic</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PDF ANALYZER TAB -->
+    <section class="tab-panel" id="tab-pdf">
+      <header class="panel-header">
+        <div class="panel-title">
+          <h1>PDF Analyzer</h1>
+          <p>Upload a PDF — get smart questions generated from the content</p>
+        </div>
+        <div class="panel-header-right">
+          <button class="history-header-btn" onclick="openChatHistoryModal()" title="View Chat &amp; Revision History">
+            <svg class="history-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span class="history-label-span">History</span>
+          </button>
+          <button class="mode-badge badge-default global-mode-btn" onclick="openModeModal()" title="Current AI Study Mode · Click to change">
+            <span class="mode-icon-span">⚡</span>
+            <span class="mode-label-span">Mode: Default</span>
+          </button>
+          <div class="header-auth-slot"></div>
+        </div>
+      </header>
+
+      <div class="pdf-upload-zone" id="pdfUploadZone" onclick="document.getElementById('pdfFileInput').click()" ondragover="event.preventDefault()" ondrop="handlePdfDrop(event)">
+        <input type="file" id="pdfFileInput" accept=".pdf" style="display:none;" onchange="handlePdfUpload(event)"/>
+        <div class="upload-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+        <h3>Drop your PDF here or click to browse</h3>
+        <p>Supports any PDF document · Max 50 pages recommended</p>
+      </div>
+
+      <div class="pdf-processing" id="pdfProcessing" style="display:none;">
+        <div class="processing-steps">
+          <div class="step" id="step1"><div class="step-icon">📄</div><span>Reading PDF</span></div>
+          <div class="step-arrow">→</div>
+          <div class="step" id="step2"><div class="step-icon">🔍</div><span>Analysing</span></div>
+          <div class="step-arrow">→</div>
+          <div class="step" id="step3"><div class="step-icon">❓</div><span>Generating Questions</span></div>
+        </div>
+        <div class="processing-bar"><div class="processing-fill" id="processingFill"></div></div>
+        <p id="processingStatus">Extracting text from PDF…</p>
+      </div>
+
+      <div class="pdf-results" id="pdfResults" style="display:none;">
+        <div class="pdf-meta-bar">
+          <div class="pdf-file-info" id="pdfFileInfo"></div>
+          <button class="btn-ghost" onclick="resetPdf()">Upload Another</button>
+        </div>
+        <div class="pdf-content-grid">
+          <div class="pdf-summary-panel">
+            <h3>📋 Document Overview</h3>
+            <div id="pdfOverview"></div>
+          </div>
+          <div class="pdf-questions-panel">
+            <h3>❓ Generated Questions</h3>
+            <div id="pdfQuestions"></div>
+            <button class="btn-primary" onclick="startPdfQuiz()" id="startPdfQuizBtn" style="margin-top:1rem;">Take Quiz from PDF</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROGRESS TRACKER TAB -->
+    <section class="tab-panel" id="tab-progress">
+      <header class="panel-header">
+        <div class="panel-title">
+          <h1>Progress Tracker</h1>
+          <p>Your study journey at a glance</p>
+        </div>
+        <div class="panel-header-right">
+          <button class="history-header-btn" onclick="openChatHistoryModal()" title="View Chat &amp; Revision History">
+            <svg class="history-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span class="history-label-span">History</span>
+          </button>
+          <button class="mode-badge badge-default global-mode-btn" onclick="openModeModal()" title="Current AI Study Mode · Click to change">
+            <span class="mode-icon-span">⚡</span>
+            <span class="mode-label-span">Mode: Default</span>
+          </button>
+          <div class="header-auth-slot"></div>
+          <button class="btn-ghost" onclick="clearProgress()">Reset Progress</button>
+        </div>
+      </header>
+
+      <div class="progress-grid">
+        <div class="stat-card">
+          <div class="stat-icon">🎯</div>
+          <div class="stat-value" id="statQuizCount">0</div>
+          <div class="stat-label">Quizzes Taken</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⭐</div>
+          <div class="stat-value" id="statAvgScore">—</div>
+          <div class="stat-label">Average Score</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📚</div>
+          <div class="stat-value" id="statTopicsCount">0</div>
+          <div class="stat-label">Topics Covered</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🔥</div>
+          <div class="stat-value" id="statStreak">0</div>
+          <div class="stat-label">Day Streak</div>
+        </div>
+      </div>
+
+      <div class="progress-charts-row">
+        <div class="chart-card">
+          <h3>Quiz Score History</h3>
+          <div class="chart-wrapper"><canvas id="scoreChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <h3>Topics Breakdown</h3>
+          <div class="chart-wrapper"><canvas id="topicsChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="progress-history">
+        <h3>Recent Activity</h3>
+        <div class="history-list" id="historyList">
+          <div class="history-empty"><span>📊</span><p>No activity yet — take a quiz to get started!</p></div>
+        </div>
+      </div>
+
+      <div class="topics-covered">
+        <h3>Topics You've Studied</h3>
+        <div class="topics-tags" id="topicsTags"><p class="no-topics">No topics yet</p></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- LOGIN MODAL -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal-card auth-card">
+      <div class="auth-header">
+        <div class="auth-logo-badge">
+          <svg width="40" height="40" viewBox="0 0 28 28" fill="none">
+            <circle cx="14" cy="14" r="14" fill="url(#loginModalGrad)"/>
+            <path d="M8 14c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="14" cy="17" r="2" fill="#fff"/>
+            <defs>
+              <linearGradient id="loginModalGrad" x1="0" y1="0" x2="28" y2="28">
+                <stop offset="0%" stop-color="#7c3aed"/>
+                <stop offset="100%" stop-color="#2563eb"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <h2 id="loginModalTitle">Sign in to StudyMind AI</h2>
+        <p id="loginModalSubtitle">Enter your Email or Mobile number to access your study account</p>
+      </div>
+
+      <form class="auth-form" id="loginForm" onsubmit="handleLoginSubmit(event)" novalidate>
+        <!-- Identifier (Email or Mobile) -->
+        <div class="setting-field">
+          <label for="loginIdentifier">Email Account or Mobile Number</label>
+          <div class="input-with-icon">
+            <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <input type="text" id="loginIdentifier" placeholder="e.g. alex@gmail.com or 9876543210" oninput="handleIdentifierInput()" onblur="handleIdentifierBlur()" required autocomplete="username" />
+          </div>
+          <div class="auth-status-bar" id="authStatusBar" style="display:none;"></div>
+        </div>
+
+        <!-- Name (required for new students) -->
+        <div class="setting-field" id="nameFieldGroup">
+          <label for="loginUserName">Student Name <span class="required-star">*</span></label>
+          <div class="input-with-icon">
+            <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="8" r="5"></circle>
+              <path d="M20 21a8 8 0 1 0-16 0"></path>
+            </svg>
+            <input type="text" id="loginUserName" placeholder="Enter your full name" required oninput="this.classList.remove('input-error')" />
+          </div>
+          <small class="field-tip">Required so StudyMind AI can personalize all answers for you</small>
+        </div>
+
+        <!-- Password Field -->
+        <div class="setting-field">
+          <div class="field-label-row">
+            <label for="loginPassword" id="passwordFieldLabel">Password</label>
+            <span class="field-helper" id="passwordFieldHelper"></span>
+          </div>
+          <div class="input-with-icon auth-password-box">
+            <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <input type="password" id="loginPassword" placeholder="Enter your password" oninput="clearPasswordError()" required autocomplete="current-password" />
+            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('loginPassword', this)">
+              Show
+            </button>
+          </div>
+          <div class="auth-error-msg" id="passwordErrorMsg" style="display:none;"></div>
+          <div class="forgot-password-row" id="forgotPasswordRow">
+            <button type="button" class="forgot-password-link" onclick="openForgotPasswordModal()">Forgot Password?</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary full-width auth-submit-btn" id="loginSubmitBtn">
+          <span id="loginSubmitBtnText">Log In to StudyMind</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+
+        <div class="auth-perks">
+          <div class="auth-perk-item">🔒 <strong>Secure Account:</strong> User records saved &amp; retrieved automatically per account</div>
+          <div class="auth-perk-item">⚡ <strong>AI Chatbot:</strong> 3 learning modes (Friendly, Prof, Default)</div>
+          <div class="auth-perk-item">📊 <strong>Synced History:</strong> Quiz scores &amp; study history linked to your ID</div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODE SELECTION ONBOARDING MODAL -->
+  <div class="modal-overlay" id="modeModal">
+    <div class="modal-card mode-modal-card">
+      <div class="modal-header">
+        <div>
+          <h2>Choose AI Chatbot Mode 🎯</h2>
+          <p class="modal-subtitle">Pick how your AI tutor should teach and interact with you</p>
+        </div>
+        <button class="btn-icon" onclick="closeModeModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="mode-options-grid">
+          <!-- Default Mode -->
+          <div class="mode-card selected" id="modeCard-default" onclick="selectOnboardingMode('default')">
+            <div class="mode-card-header">
+              <div class="mode-card-icon default-icon">⚡</div>
+              <div class="mode-card-meta">
+                <h3>Default Mode</h3>
+                <span class="mode-pill pill-default">Balanced &amp; Clear</span>
+              </div>
+              <div class="mode-check-circle"></div>
+            </div>
+            <p class="mode-description">
+              Standard mode with no change. Delivers balanced, structured, and clear explanations with examples for any question.
+            </p>
+          </div>
+
+          <!-- Friendly Mode -->
+          <div class="mode-card" id="modeCard-friendly" onclick="selectOnboardingMode('friendly')">
+            <div class="mode-card-header">
+              <div class="mode-card-icon friendly-icon">😊</div>
+              <div class="mode-card-meta">
+                <h3>Friendly Mode</h3>
+                <span class="mode-pill pill-friendly">Study Buddy / Best Friend</span>
+              </div>
+              <div class="mode-check-circle"></div>
+            </div>
+            <p class="mode-description">
+              The chatbot acts as your friend! Explains everything in the simplest and shortest way possible with everyday relatable analogies, fun vibes, and zero confusing jargon.
+            </p>
+          </div>
+
+          <!-- Professional Mode -->
+          <div class="mode-card" id="modeCard-professional" onclick="selectOnboardingMode('professional')">
+            <div class="mode-card-header">
+              <div class="mode-card-icon prof-icon">🎓</div>
+              <div class="mode-card-meta">
+                <h3>Professional Mode</h3>
+                <span class="mode-pill pill-prof">University Professor</span>
+              </div>
+              <div class="mode-check-circle"></div>
+            </div>
+            <p class="mode-description">
+              The chatbot acts as a professional teacher and mentor! Teaches you in depth with scholarly rigor, theoretical breakdown, structured academic sections, and detailed analytical explanations.
+            </p>
+          </div>
+        </div>
+
+        <div class="mode-notice-banner">
+          💡 <strong>Tip:</strong> You can change your study mode anytime later from <strong>Settings ⚙️</strong>.
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-primary full-width" onclick="confirmModeSelection()">
+          Confirm Mode &amp; Start Studying
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW SETTINGS MODAL -->
+  <div class="modal-overlay" id="settingsModal" onclick="closeSettings(event)">
+    <div class="modal-card settings-card">
+      <div class="modal-header">
+        <div>
+          <h2>⚙️ Settings &amp; Customization</h2>
+          <p class="modal-subtitle">Customize themes, learning modes, and manage your account</p>
+        </div>
+        <button class="btn-icon" onclick="closeSettingsBtn()">✕</button>
+      </div>
+
+      <div class="modal-body settings-body-scrollable">
+        <!-- 1) Change Theme -->
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <span class="section-icon">🎨</span>
+            <div>
+              <h3>1. Change Theme</h3>
+              <p>Choose from 13 vibrant, eye-comfortable artistic, creative, funny &amp; scenery themes</p>
+            </div>
+          </div>
+
+          <!-- Category filter tabs -->
+          <div class="theme-category-tabs">
+            <button type="button" class="theme-cat-tab active" data-cat="all" onclick="filterThemeCategory('all')">All Themes (13)</button>
+            <button type="button" class="theme-cat-tab" data-cat="creative" onclick="filterThemeCategory('creative')">🌌 Creative</button>
+            <button type="button" class="theme-cat-tab" data-cat="funny" onclick="filterThemeCategory('funny')">🎭 Funny</button>
+            <button type="button" class="theme-cat-tab" data-cat="artistic" onclick="filterThemeCategory('artistic')">🎨 Artistic</button>
+            <button type="button" class="theme-cat-tab" data-cat="scenery" onclick="filterThemeCategory('scenery')">🏔️ Scenery</button>
+            <button type="button" class="theme-cat-tab" data-cat="classic" onclick="filterThemeCategory('classic')">⭐ Classic</button>
+          </div>
+
+          <div class="theme-grid">
+            <!-- Classic themes -->
+            <button type="button" class="theme-card active" id="themeBtn-midnight" data-cat="classic" onclick="applyAndSaveTheme('midnight')" title="Midnight Dark · Deep starry obsidian with soft purple">
+              <div class="theme-swatch midnight-swatch">
+                <span class="swatch-dot bg-dot"></span>
+                <span class="swatch-dot accent-dot"></span>
+              </div>
+              <span class="theme-name">🌙 Midnight</span>
+              <span class="theme-tag">Classic</span>
+            </button>
+
+            <button type="button" class="theme-card" id="themeBtn-light" data-cat="classic" onclick="applyAndSaveTheme('light')" title="Clean Light · Pristine daylight with soothing indigo">
+              <div class="theme-swatch light-swatch">
+                <span class="swatch-dot bg-dot"></span>
+                <span class="swatch-dot accent-dot"></span>
+              </div>
+              <span class="theme-name">☀️ Clean Light</span>
+              <span class="theme-tag">Daylight</span>
+            </button>
+
+            <button type="button" class="theme-card" id="themeBtn-ocean" data-cat="classic" onclick="applyAndSaveTheme('ocean')" title="Ocean Tech · Deep abyssal teal with cyan pulses">
+              <div class="theme-swatch ocean-swatch">
+                <span class="swatch-dot bg-dot"></span>
+                <span class="swatch-dot accent-dot"></span>
+              </div>
+              <span class="theme-name">🌊 Ocean Tech</span>
+              <span class="theme-tag">Classic</span>
+            </button>
+
+            <button type="button" class="theme-card" id="themeBtn-forest" data-cat="classic" onclick="applyAndSaveTheme('forest')" title="Forest Green · Organic pine and deep mint foliage">
+              <div class="theme-swatch forest-swatch">
+                <span class="swatch-dot bg-dot"></span>
+                <span class="swatch-dot accent-dot"></span>
+              </div>
+              <span class="theme-name">🌲 Forest Green</span>
+              <span class="theme-tag">Classic</span>
+            </button>
+
+            <button type="button" class="theme-card" id="themeBtn-cyber" data-cat="creative" onclick="applyAndSaveTheme('cyber')" title="Cyber Neon · Synthwave neon magenta and electric violet">
+              <div class="theme-swatch cyber-swatch">
+                <span class="swatch-dot bg-dot"></span>
+                <span class="swatch-dot accent-dot"></span>
+              </div>
+              <span class="theme-name">🔮 Cyber Neon</span>
+              <span class="theme-tag">Creative</span>
+            </button>
+
+            <!-- 🌌 Creative themes -->
+            <button type="button" class="theme-card" id="themeBtn-cosmic" data-cat="creative" onclick="applyAndSaveTheme('cosmic')" title="Cosmic Nebula · Deep space indigo with interstellar violet &amp; cyan starlight">
+              <div class="theme-swatch cosmic-swatch">
+                <span class="swatch-dot bg-dot"></span>
+                <span class="swatch-dot accent-dot"></span>
+              </div>
+              <span class="theme-name">🌌 Cosmic Nebula</span>
+              <span class="theme-tag">Creative</span>
+            </button>
+
+            <button type="button" class="theme-card" id="themeBtn-sunset" data-cat="creative scenery" onclick="applyAndSaveTheme('sunset')" title="Sunset Glow · Golden hour dusk twilight with coral rose and warm amber">
+              <div class="theme-swatch sunset-swatch">
+                <span class="swatch-dot bg-dot"></span>
+                <span class="swatch-dot accent-dot"></span>
+              </div>
+              <span class="theme-name">🪸 Sunset Glow</span>
+              <span class="theme-tag">Creative</span>
+            </button>
+
+            <!-- 🎭 Funny & Playful themes -->
+            <button type="button" class="theme-card" id="themeBtn-banana" data-cat="funny" onclick="applyAndSaveTheme('banana')" title="Banana Punch · Cheerful electric banana yellow and citrus mango on soft charcoal">
+              <div class="theme-swatch banana-swatch">
+                <span class="swatch-dot bg-dot"></span>
+                <span class="swatch-dot accent-dot"></span>
+              </div>
+              <span class="theme-name">🍌 Banana Punch</span>
+              <span class="theme-tag">Funny</span>
+            </button>
+
+            <button type="button" class="theme-card" id="themeBtn-arcade" data-cat="funny creative" onclick="applyAndSaveTheme('arcade')" title="Retro Arcade · 80s arcade cabinet nostalgia with 8-bit neon green &amp; cyan">
+              <div class="theme-swatch arcade-swatch">
+                <span class="swatch-dot bg-dot"></span>
+                <span class="swatch-dot accent-dot"></span>
+              </div>
+              <span class="theme-name">👾 Retro Arcade</span>
+              <span class="theme-tag">Funny</span>
+            </button>
+
+            <!-- 🎨 Artistic themes -->
+            <button type="button" class="theme-card" id="themeBtn-canvas" data-cat="artistic" onclick="applyAndSaveTheme('canvas')" title="Oil Canvas · Classical renaissance studio with warm Venetian burnt sienna and linen gold">
+              <div class="theme-swatch canvas-swatch">
+                <span class="swatch-dot bg-dot"></span>
+                <span class="swatch-dot accent-dot"></span>
+              </div>
+              <span class="theme-name">🎨 Oil Canvas</span>
+              <span class="theme-tag">Artistic</span>
+            </button>
+
+            <button type="button" class="theme-card" id="themeBtn-sakura" data-cat="artistic scenery" onclick="applyAndSaveTheme('sakura')" title="Sakura Blossom · Watercolor Japanese atelier with blooming cherry blossom &amp; soft lavender">
+              <div class="theme-swatch sakura-swatch">
+                <span class="swatch-dot bg-dot"></span>
+                <span class="swatch-dot accent-dot"></span>
+              </div>
+              <span class="theme-name">🌸 Sakura Blossom</span>
+              <span class="theme-tag">Artistic</span>
+            </button>
+
+            <!-- 🏔️ Scenery & Nature themes -->
+            <button type="button" class="theme-card" id="themeBtn-aurora" data-cat="scenery" onclick="applyAndSaveTheme('aurora')" title="Nordic Aurora · Arctic fjord twilight with dancing emerald polar lights &amp; glacial cyan">
+              <div class="theme-swatch aurora-swatch">
+                <span class="swatch-dot bg-dot"></span>
+                <span class="swatch-dot accent-dot"></span>
+              </div>
+              <span class="theme-name">🏔️ Nordic Aurora</span>
+              <span class="theme-tag">Scenery</span>
+            </button>
+
+            <button type="button" class="theme-card" id="themeBtn-canyon" data-cat="scenery" onclick="applyAndSaveTheme('canyon')" title="Desert Canyon · Red rock Sedona canyon starlight with warm terracotta &amp; golden sand">
+              <div class="theme-swatch canyon-swatch">
+                <span class="swatch-dot bg-dot"></span>
+                <span class="swatch-dot accent-dot"></span>
+              </div>
+              <span class="theme-name">🏜️ Desert Canyon</span>
+              <span class="theme-tag">Scenery</span>
+            </button>
+          </div>
+
+          <!-- Custom Accent Color Picker -->
+          <div class="custom-accent-picker">
+            <span>Custom Accent Hue:</span>
+            <div class="color-picker-wrapper">
+              <input type="color" id="customAccentInput" value="#7c3aed" oninput="handleCustomAccentInput(this.value)" onchange="handleCustomAccentChange(this.value)"/>
+              <span class="color-val-label" id="colorValLabel">#7c3aed</span>
+              <button type="button" class="btn-ghost btn-sm" onclick="resetAccentColor()">Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2) Mode of Chatbot -->
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <span class="section-icon">🎯</span>
+            <div>
+              <h3>2. Mode of Chatbot</h3>
+              <p>Configure how the AI explains, interacts, and teaches you</p>
+            </div>
+          </div>
+
+          <div class="settings-modes-list">
+            <!-- Default -->
+            <label class="settings-mode-radio" id="settingsRadioLabel-default" for="settingsModeDefault">
+              <input type="radio" name="settingsMode" id="settingsModeDefault" value="default" onchange="handleSettingsModeChange('default')">
+              <div class="settings-mode-content">
+                <div class="mode-row">
+                  <span class="mode-badge-tag tag-default">⚡ Default Mode</span>
+                  <span class="mode-brief">(Standard study assistant)</span>
+                </div>
+                <p class="mode-subtext">No change in mode. Gives standard, clear, balanced, and structured study explanations.</p>
+              </div>
+            </label>
+
+            <!-- Friendly -->
+            <label class="settings-mode-radio" id="settingsRadioLabel-friendly" for="settingsModeFriendly">
+              <input type="radio" name="settingsMode" id="settingsModeFriendly" value="friendly" onchange="handleSettingsModeChange('friendly')">
+              <div class="settings-mode-content">
+                <div class="mode-row">
+                  <span class="mode-badge-tag tag-friendly">😊 Friendly Mode</span>
+                  <span class="mode-brief">(Study buddy / Best friend)</span>
+                </div>
+                <p class="mode-subtext">The chatbot acts as your friend. Explains in the simplest, shortest way with everyday analogies, conversational vibe, and zero boring jargon.</p>
+              </div>
+            </label>
+
+            <!-- Professional -->
+            <label class="settings-mode-radio" id="settingsRadioLabel-professional" for="settingsModeProf">
+              <input type="radio" name="settingsMode" id="settingsModeProf" value="professional" onchange="handleSettingsModeChange('professional')">
+              <div class="settings-mode-content">
+                <div class="mode-row">
+                  <span class="mode-badge-tag tag-prof">🎓 Professional Mode</span>
+                  <span class="mode-brief">(Professor &amp; Academic Teacher)</span>
+                </div>
+                <p class="mode-subtext">The chatbot acts as a professional teacher. Teaches you as a student in depth with comprehensive theory, rigorous structure, and analytical depth.</p>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- 3) Account & Profile -->
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <span class="section-icon">👤</span>
+            <div>
+              <h3>3. Current Account &amp; Student Name</h3>
+              <p id="settingsAccountStatus">Manage your profile, student name, and session</p>
+            </div>
+          </div>
+
+          <div class="account-card">
+            <div class="account-info">
+              <div class="account-avatar" id="settingsUserAvatar">👤</div>
+              <div>
+                <div class="account-name" id="settingsUserName">Student</div>
+                <div class="account-id" id="settingsUserIdentifier">alex@example.com</div>
+              </div>
+            </div>
+            <button type="button" class="btn-danger" onclick="handleLogout()" id="logoutBtn" title="Log out from this account">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              <span>Log Out</span>
+            </button>
+          </div>
+
+          <!-- Separate Option to Add / Update Student Name for Already Logged-in User -->
+          <div class="setting-field update-name-field" id="updateNameField">
+            <div class="field-label-row">
+              <label for="settingsStudentNameInput">Student Name</label>
+              <span class="field-helper" id="nameStatusBadge">Personalize AI greetings</span>
+            </div>
+            <div class="update-name-wrapper">
+              <div class="input-with-icon" style="flex:1;">
+                <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="8" r="5"></circle>
+                  <path d="M20 21a8 8 0 1 0-16 0"></path>
+                </svg>
+                <input type="text" id="settingsStudentNameInput" placeholder="Enter your full name" onkeydown="if(event.key==='Enter') saveStudentNameFromSettings()" />
+              </div>
+              <button type="button" class="btn-primary" onclick="saveStudentNameFromSettings()" id="saveNameBtn">
+                Save Name
+              </button>
+            </div>
+            <small class="field-tip">Setting your name updates your account and allows StudyMind AI to address you personally as "Hello [Name]!".</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-primary" onclick="closeSettingsBtn()">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
