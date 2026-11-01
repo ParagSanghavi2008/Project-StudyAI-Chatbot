@@ -1921,3 +1921,537 @@ function closeSettingsBtn() {
   if (modal) modal.classList.remove('open');
 }
 
+// ════════════════════════════════════════════════
+//  CHAT & REVISION HISTORY MANAGEMENT
+// ════════════════════════════════════════════════
+
+function saveCurrentChatToSessions() {
+  if (!state.chatHistory || state.chatHistory.length === 0) return;
+
+  if (!state.activeSessionId) {
+    state.activeSessionId = 'sess_' + Date.now();
+  }
+
+  const firstUserMsg = state.chatHistory.find(m => m.role === 'user');
+  let rawTitle = firstUserMsg ? firstUserMsg.content.trim() : 'Study Session';
+  // Strip markdown or excess symbols
+  rawTitle = rawTitle.replace(/[#*_`]/g, '').trim();
+  const title = rawTitle.length > 55 ? rawTitle.substring(0, 52) + '...' : rawTitle;
+
+  const existingIndex = state.chatSessions.findIndex(s => s.id === state.activeSessionId);
+  const lastAssistant = [...state.chatHistory].reverse().find(m => m.role === 'assistant');
+  const previewText = lastAssistant ? lastAssistant.content.replace(/[#*_`]/g, '').substring(0, 140) : '';
+
+  const sessionData = {
+    id: state.activeSessionId,
+    title: title || 'Study Topic',
+    mode: state.auth.mode || 'default',
+    createdAt: existingIndex >= 0 ? state.chatSessions[existingIndex].createdAt : new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    messages: JSON.parse(JSON.stringify(state.chatHistory)),
+    preview: previewText
+  };
+
+  if (existingIndex >= 0) {
+    state.chatSessions[existingIndex] = sessionData;
+  } else {
+    state.chatSessions.unshift(sessionData);
+  }
+
+  saveToStorage();
+  updateHistoryBadges();
+  renderWelcomeHistoryChips();
+}
+
+function startNewChatSession() {
+  if (state.chatHistory && state.chatHistory.length > 0) {
+    saveCurrentChatToSessions();
+  }
+
+  state.chatHistory = [];
+  state.activeSessionId = null;
+
+  const container = document.getElementById('chatMessages');
+  if (container) container.innerHTML = '';
+
+  const wb = document.getElementById('welcomeBlock');
+  if (wb) wb.style.display = 'flex';
+
+  saveToStorage();
+  updateWelcomeGreeting();
+  renderWelcomeHistoryChips();
+  closeChatHistoryModal();
+
+  switchTab('chat');
+  showToast('✨ Started a new study chat! Your previous topic is saved in History.');
+}
+
+function openChatHistoryModal() {
+  if (!state.auth.isLoggedIn) {
+    showToast('⚠️ Please log in to view and revise your study history.');
+    openLoginModal();
+    return;
+  }
+
+  // Ensure current active chat is saved
+  if (state.chatHistory && state.chatHistory.length > 0) {
+    saveCurrentChatToSessions();
+  }
+
+  const modal = document.getElementById('historyModal');
+  if (modal) modal.classList.add('open');
+
+  // Reset filters
+  state.historyFilterMode = 'all';
+  state.historySearchQuery = '';
+  const searchInput = document.getElementById('historySearchInput');
+  if (searchInput) searchInput.value = '';
+  const clearBtn = document.getElementById('historySearchClear');
+  if (clearBtn) clearBtn.style.display = 'none';
+
+  updateHistoryFilterPills();
+  renderHistorySessions();
+  updateHistoryBadges();
+}
+
+function closeChatHistoryModal() {
+  const modal = document.getElementById('historyModal');
+  if (modal) modal.classList.remove('open');
+}
+
+function closeChatHistory(e) {
+  if (e.target === document.getElementById('historyModal')) {
+    closeChatHistoryModal();
+  }
+}
+
+function filterHistoryMode(mode) {
+  state.historyFilterMode = mode;
+  updateHistoryFilterPills();
+  renderHistorySessions();
+}
+
+function updateHistoryFilterPills() {
+  ['all', 'friendly', 'professional', 'default'].forEach(m => {
+    const pill = document.getElementById(`filterPill-${m}`);
+    if (pill) {
+      if (m === state.historyFilterMode) pill.classList.add('active');
+      else pill.classList.remove('active');
+    }
+  });
+}
+
+function handleHistorySearch(val) {
+  state.historySearchQuery = (val || '').trim().toLowerCase();
+  const clearBtn = document.getElementById('historySearchClear');
+  if (clearBtn) clearBtn.style.display = state.historySearchQuery ? 'block' : 'none';
+  renderHistorySessions();
+}
+
+function clearHistorySearch() {
+  state.historySearchQuery = '';
+  const searchInput = document.getElementById('historySearchInput');
+  if (searchInput) {
+    searchInput.value = '';
+    searchInput.focus();
+  }
+  const clearBtn = document.getElementById('historySearchClear');
+  if (clearBtn) clearBtn.style.display = 'none';
+  renderHistorySessions();
+}
+
+function formatSessionDate(isoStr) {
+  if (!isoStr) return '';
+  const d = new Date(isoStr);
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  if (isToday) return `Today at ${timeStr}`;
+
+  const yesterday = new Date();
+  yesterday.setDate(now.getDate() - 1);
+  if (d.toDateString() === yesterday.toDateString()) return `Yesterday at ${timeStr}`;
+
+  return d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) + ` · ${timeStr}`;
+}
+
+function renderHistorySessions() {
+  const container = document.getElementById('historySessionsContainer');
+  if (!container) return;
+
+  const totalCount = state.chatSessions.length;
+  const label = document.getElementById('historyTotalCountLabel');
+  if (label) {
+    label.textContent = `${totalCount} topic${totalCount !== 1 ? 's' : ''} saved for revision`;
+  }
+
+  const countAll = document.getElementById('countFilterAll');
+  if (countAll) countAll.textContent = totalCount;
+
+  // Filter list
+  let filtered = [...state.chatSessions];
+
+  if (state.historyFilterMode && state.historyFilterMode !== 'all') {
+    filtered = filtered.filter(s => (s.mode || 'default') === state.historyFilterMode);
+  }
+
+  if (state.historySearchQuery) {
+    const q = state.historySearchQuery;
+    filtered = filtered.filter(s => {
+      const matchTitle = (s.title || '').toLowerCase().includes(q);
+      const matchPreview = (s.preview || '').toLowerCase().includes(q);
+      const matchMessages = s.messages && s.messages.some(m => (m.content || '').toLowerCase().includes(q));
+      return matchTitle || matchPreview || matchMessages;
+    });
+  }
+
+  if (filtered.length === 0) {
+    if (state.chatSessions.length === 0) {
+      container.innerHTML = `
+        <div class="history-empty-state">
+          <div class="history-empty-icon">📖</div>
+          <h3>No Previous Study Topics Yet</h3>
+          <p>Every time you ask questions in Study Chat, your topics and explanations will be safely saved here so you can revise them whenever you want!</p>
+          <button class="btn-primary" onclick="startNewChatSession()">Start Your First Topic</button>
+        </div>
+      `;
+    } else {
+      container.innerHTML = `
+        <div class="history-empty-state">
+          <div class="history-empty-icon">🔍</div>
+          <h3>No Matching Topics Found</h3>
+          <p>No study sessions matched your search "${escapeHtml(state.historySearchQuery)}". Try a different keyword or reset filters.</p>
+          <button class="btn-secondary btn-sm" onclick="clearHistorySearch()">Clear Search</button>
+        </div>
+      `;
+    }
+    return;
+  }
+
+  container.innerHTML = filtered.map(session => {
+    const mode = session.mode || 'default';
+    const modeConfig = {
+      friendly: { label: '🎈 Friendly', class: 'badge-friendly' },
+      professional: { label: '🎓 Professional', class: 'badge-professional' },
+      default: { label: '⚡ Default', class: 'badge-default' }
+    }[mode] || { label: '⚡ Default', class: 'badge-default' };
+
+    const qCount = session.messages ? session.messages.filter(m => m.role === 'user').length : 0;
+    const dateFormatted = formatSessionDate(session.updatedAt || session.createdAt);
+    const isCurrentActive = session.id === state.activeSessionId;
+
+    return `
+      <div class="history-session-card ${isCurrentActive ? 'session-current-active' : ''}" id="sessionCard-${session.id}">
+        <div class="session-card-header">
+          <div class="session-title-block">
+            <h3 class="session-topic-title">${escapeHtml(session.title)}</h3>
+            <div class="session-meta-row">
+              <span class="session-time-text">🕒 ${dateFormatted}</span>
+              <span class="mode-badge ${modeConfig.class}" style="padding:2px 8px;font-size:0.7rem;">${modeConfig.label}</span>
+              <span class="session-count-pill">${qCount} Q&amp;A${qCount !== 1 ? 's' : ''}</span>
+              ${isCurrentActive ? '<span style="color:var(--purple-light);font-weight:700;">● Active in Chat</span>' : ''}
+            </div>
+          </div>
+        </div>
+
+        ${session.preview ? `
+          <div class="session-snippet-box">
+            "${escapeHtml(session.preview)}..."
+          </div>
+        ` : ''}
+
+        <div class="session-actions">
+          <button class="btn-primary btn-sm" onclick="loadSessionForRevision('${session.id}')" title="Open this full conversation in chat to revise and ask follow-ups">
+            📖 Revise in Chat
+          </button>
+          <button class="btn-secondary btn-sm" onclick="openQuickReview('${session.id}')" title="Quickly review all questions and explanations without leaving">
+            👁️ Quick Review
+          </button>
+          <button class="btn-ghost btn-sm btn-danger-ghost" onclick="deleteChatSession('${session.id}')" title="Delete this topic from revision history" style="margin-left:auto;">
+            🗑️
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function loadSessionForRevision(sessionId) {
+  const session = state.chatSessions.find(s => s.id === sessionId);
+  if (!session) {
+    showToast('⚠️ Topic session not found.');
+    return;
+  }
+
+  // Load into active chat
+  state.activeSessionId = session.id;
+  state.chatHistory = JSON.parse(JSON.stringify(session.messages || []));
+
+  // If session had a specific mode, apply it
+  if (session.mode && session.mode !== state.auth.mode) {
+    state.auth.mode = session.mode;
+    updateModeUI(session.mode);
+  }
+
+  // Restore messages on UI
+  restoreChatHistoryUI();
+
+  // Close modals
+  closeChatHistoryModal();
+  closeQuickReviewModal();
+
+  // Switch to chat tab
+  switchTab('chat');
+
+  // Scroll to bottom
+  const chatContainer = document.getElementById('chatContainer');
+  if (chatContainer) {
+    setTimeout(() => {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }, 100);
+  }
+
+  showToast(`📖 Loaded "${session.title}" for revision! Re-read previous explanations or ask more questions.`, 4000);
+}
+
+function openQuickReview(sessionId) {
+  const session = state.chatSessions.find(s => s.id === sessionId);
+  if (!session) return;
+
+  state.currentReviewSessionId = sessionId;
+
+  const modal = document.getElementById('quickReviewModal');
+  const titleEl = document.getElementById('reviewModalTitle');
+  const metaEl = document.getElementById('reviewModalMeta');
+  const contentEl = document.getElementById('reviewModalContent');
+
+  if (titleEl) titleEl.textContent = session.title;
+  if (metaEl) {
+    const qCount = session.messages ? session.messages.filter(m => m.role === 'user').length : 0;
+    metaEl.textContent = `${formatSessionDate(session.updatedAt || session.createdAt)} · Mode: ${session.mode || 'default'} · ${qCount} Q&A exchanges`;
+  }
+
+  if (contentEl) {
+    const messages = session.messages || [];
+    // Group into Q&A pairs
+    const pairs = [];
+    let currentQ = null;
+
+    messages.forEach(m => {
+      if (m.role === 'user') {
+        if (currentQ) pairs.push({ question: currentQ, answer: '' });
+        currentQ = m.content;
+      } else if (m.role === 'assistant') {
+        pairs.push({ question: currentQ || 'Question', answer: m.content });
+        currentQ = null;
+      }
+    });
+    if (currentQ) pairs.push({ question: currentQ, answer: '' });
+
+    if (pairs.length === 0) {
+      contentEl.innerHTML = '<p class="text-dim">No questions recorded in this session.</p>';
+    } else {
+      contentEl.innerHTML = pairs.map((pair, idx) => `
+        <div class="review-turn-card">
+          <div class="review-q-header">
+            <span>❓ Question ${idx + 1}</span>
+            <button class="btn-ghost btn-sm" onclick="copyTextToClipboard(${JSON.stringify(pair.question)})">📋 Copy</button>
+          </div>
+          <div class="review-q-body">
+            <strong>${escapeHtml(pair.question)}</strong>
+          </div>
+          <div class="review-a-header">
+            <span>💡 StudyMind AI Explanation</span>
+            <button class="btn-ghost btn-sm" onclick="copyTextToClipboard(${JSON.stringify(pair.answer)})">📋 Copy Explanation</button>
+          </div>
+          <div class="review-a-body">
+            ${marked.parse(pair.answer || '_No explanation recorded_')}
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+
+  if (modal) modal.classList.add('open');
+}
+
+function closeQuickReviewModal() {
+  const modal = document.getElementById('quickReviewModal');
+  if (modal) modal.classList.remove('open');
+  state.currentReviewSessionId = null;
+}
+
+function closeQuickReview(e) {
+  if (e.target === document.getElementById('quickReviewModal')) {
+    closeQuickReviewModal();
+  }
+}
+
+function resumeSessionFromReview() {
+  if (state.currentReviewSessionId) {
+    loadSessionForRevision(state.currentReviewSessionId);
+  }
+}
+
+function copyReviewSessionText() {
+  const session = state.chatSessions.find(s => s.id === state.currentReviewSessionId);
+  if (!session) return;
+
+  const text = (session.messages || []).map(m =>
+    `${m.role === 'user' ? 'Question' : 'Explanation'}:\n${m.content}\n`
+  ).join('\n---\n\n');
+
+  copyTextToClipboard(text);
+  showToast('📋 All revision text copied to clipboard!');
+}
+
+function copyTextToClipboard(str) {
+  if (!str) return;
+  navigator.clipboard.writeText(str).then(() => {
+    showToast('📋 Copied to clipboard!');
+  }).catch(() => {
+    const t = document.createElement('textarea');
+    t.value = str;
+    document.body.appendChild(t);
+    t.select();
+    document.execCommand('copy');
+    t.remove();
+    showToast('📋 Copied to clipboard!');
+  });
+}
+
+function deleteChatSession(sessionId) {
+  const session = state.chatSessions.find(s => s.id === sessionId);
+  const title = session ? session.title : 'this topic';
+
+  if (!confirm(`Are you sure you want to delete "${title}" from your revision history?`)) return;
+
+  state.chatSessions = state.chatSessions.filter(s => s.id !== sessionId);
+
+  if (state.activeSessionId === sessionId) {
+    state.activeSessionId = null;
+    state.chatHistory = [];
+    restoreChatHistoryUI();
+  }
+
+  saveToStorage();
+  updateHistoryBadges();
+  renderWelcomeHistoryChips();
+  renderHistorySessions();
+
+  showToast(`🗑️ Deleted "${title}" from History.`);
+}
+
+function confirmClearAllHistory() {
+  if (state.chatSessions.length === 0) {
+    showToast('No history to clear.');
+    return;
+  }
+
+  if (!confirm('⚠️ Are you sure you want to permanently delete ALL saved study topics and revision history? This cannot be undone.')) return;
+
+  state.chatSessions = [];
+  state.activeSessionId = null;
+  state.chatHistory = [];
+
+  restoreChatHistoryUI();
+  saveToStorage();
+  updateHistoryBadges();
+  renderWelcomeHistoryChips();
+  renderHistorySessions();
+
+  showToast('🗑️ All study history has been cleared.');
+}
+
+function exportHistoryAsNotes() {
+  if (state.chatSessions.length === 0) {
+    showToast('⚠️ No study history available to export.');
+    return;
+  }
+
+  const studentName = state.auth.name || 'Student';
+  let md = `# StudyMind AI — Study & Revision Notes\n`;
+  md += `**Student**: ${studentName}\n`;
+  md += `**Exported**: ${new Date().toLocaleString()}\n`;
+  md += `**Total Topics**: ${state.chatSessions.length}\n\n`;
+  md += `---\n\n`;
+
+  state.chatSessions.forEach((s, idx) => {
+    md += `## Topic ${idx + 1}: ${s.title}\n`;
+    md += `*Studied on: ${formatSessionDate(s.createdAt)} | Mode: ${s.mode || 'default'}*\n\n`;
+
+    (s.messages || []).forEach(m => {
+      if (m.role === 'user') {
+        md += `### ❓ Question\n${m.content}\n\n`;
+      } else {
+        md += `### 💡 Explanation\n${m.content}\n\n`;
+      }
+    });
+
+    md += `---\n\n`;
+  });
+
+  const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `StudyMind_Revision_Notes_${new Date().toISOString().slice(0, 10)}.md`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+
+  showToast('📥 Study revision notes exported successfully!');
+}
+
+function updateHistoryBadges() {
+  const count = state.chatSessions ? state.chatSessions.length : 0;
+
+  // Header button count
+  const headerCount = document.getElementById('headerHistoryCount');
+  if (headerCount) headerCount.textContent = count;
+
+  // Sidebar badge
+  const sidebarBadge = document.getElementById('sidebarHistoryBadge');
+  if (sidebarBadge) {
+    sidebarBadge.textContent = count;
+    sidebarBadge.style.display = count > 0 ? 'inline-block' : 'none';
+  }
+
+  // Welcome box count
+  const welcomeCount = document.getElementById('welcomeHistoryCount');
+  if (welcomeCount) welcomeCount.textContent = count;
+}
+
+function renderWelcomeHistoryChips() {
+  const box = document.getElementById('welcomeHistoryBox');
+  const chipsContainer = document.getElementById('welcomeHistoryChips');
+  if (!box || !chipsContainer) return;
+
+  if (!state.auth.isLoggedIn || !state.chatSessions || state.chatSessions.length === 0) {
+    box.style.display = 'none';
+    return;
+  }
+
+  box.style.display = 'block';
+
+  // Take latest 4 topics
+  const recent = state.chatSessions.slice(0, 4);
+
+  chipsContainer.innerHTML = recent.map(s => {
+    const modeIcon = {
+      friendly: '🎈',
+      professional: '🎓',
+      default: '⚡'
+    }[s.mode || 'default'] || '⚡';
+
+    return `
+      <button class="history-chip" onclick="loadSessionForRevision('${s.id}')" title="Click to revise this topic: ${escapeHtml(s.title)}">
+        <span>${modeIcon}</span>
+        <span class="history-chip-text">${escapeHtml(s.title)}</span>
+        <span style="opacity:0.6;font-size:0.7rem;">↗</span>
+      </button>
+    `;
+  }).join('');
+}
+

@@ -894,6 +894,87 @@
     </div>
   </div>
 
+  <!-- CHAT & REVISION HISTORY MODAL -->
+  <div class="modal-overlay" id="historyModal" onclick="closeChatHistory(event)">
+    <div class="modal-card history-modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="history-title-row">
+            <span class="history-header-icon">📚</span>
+            <h2>Study &amp; Revision History</h2>
+          </div>
+          <p class="modal-subtitle">Review previous topics, questions, and explanations to revise anytime</p>
+        </div>
+        <div class="modal-header-actions">
+          <button class="btn-primary btn-sm new-chat-history-btn" onclick="startNewChatSession()">+ New Chat</button>
+          <button class="modal-close-btn" onclick="closeChatHistoryModal()" title="Close">&times;</button>
+        </div>
+      </div>
+
+      <div class="modal-body history-modal-body">
+        <!-- Search and Filter Bar -->
+        <div class="history-filter-bar">
+          <div class="history-search-wrapper">
+            <svg class="history-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" id="historySearchInput" placeholder="Search previous topics, questions, or key terms..." oninput="handleHistorySearch(this.value)">
+            <button class="history-search-clear" id="historySearchClear" onclick="clearHistorySearch()" style="display:none;">&times;</button>
+          </div>
+          <div class="history-mode-filters">
+            <button class="filter-pill active" id="filterPill-all" onclick="filterHistoryMode('all')">All (<span id="countFilterAll">0</span>)</button>
+            <button class="filter-pill" id="filterPill-friendly" onclick="filterHistoryMode('friendly')">🎈 Friendly</button>
+            <button class="filter-pill" id="filterPill-professional" onclick="filterHistoryMode('professional')">🎓 Professional</button>
+            <button class="filter-pill" id="filterPill-default" onclick="filterHistoryMode('default')">⚡ Default</button>
+          </div>
+        </div>
+
+        <!-- History Sessions List -->
+        <div class="history-sessions-container" id="historySessionsContainer">
+          <!-- Dynamic cards rendered by JS -->
+        </div>
+      </div>
+
+      <div class="modal-footer history-modal-footer">
+        <div class="history-footer-stats">
+          <span id="historyTotalCountLabel">0 topics saved for revision</span>
+        </div>
+        <div class="history-footer-actions">
+          <button class="btn-secondary btn-sm" onclick="exportHistoryAsNotes()" title="Export all revisions as study notes">📥 Export Notes</button>
+          <button class="btn-ghost btn-sm btn-danger-ghost" onclick="confirmClearAllHistory()" title="Clear all chat history">🗑️ Clear All</button>
+          <button class="btn-secondary btn-sm" onclick="closeChatHistoryModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICK REVIEW MODAL -->
+  <div class="modal-overlay" id="quickReviewModal" onclick="closeQuickReview(event)">
+    <div class="modal-card review-modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="history-title-row">
+            <span class="history-header-icon">📖</span>
+            <h2 id="reviewModalTitle">Topic Revision</h2>
+          </div>
+          <p class="modal-subtitle" id="reviewModalMeta">Date · Mode · Exchanges</p>
+        </div>
+        <div class="modal-header-actions">
+          <button class="btn-primary btn-sm" id="reviewResumeBtn" onclick="resumeSessionFromReview()">Continue in Chat ↗</button>
+          <button class="modal-close-btn" onclick="closeQuickReviewModal()" title="Close">&times;</button>
+        </div>
+      </div>
+      <div class="modal-body review-modal-body" id="reviewModalContent">
+        <!-- Formatted Q&A items -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary btn-sm" onclick="copyReviewSessionText()">📋 Copy All Text</button>
+        <button class="btn-primary btn-sm" onclick="resumeSessionFromReview()">📖 Open &amp; Revise in Chat</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <script src="app.js"></script>
