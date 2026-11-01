@@ -141,6 +141,174 @@
   --shadow-lg: 0 8px 40px rgba(18, 5, 26, 0.7);
 }
 
+/* 🌌 CREATIVE: Cosmic Nebula */
+[data-theme="cosmic"] {
+  --bg: #0b0914;
+  --bg2: #120e24;
+  --bg3: #1a1435;
+  --bg4: #251c4a;
+  --border: rgba(168, 85, 247, 0.18);
+  --border-hover: rgba(168, 85, 247, 0.35);
+  --text: #f3e8ff;
+  --text-muted: #c084fc;
+  --text-faint: #9333ea;
+  --purple: #a855f7;
+  --purple-light: #c084fc;
+  --blue: #38bdf8;
+  --blue-light: #7dd3fc;
+  --grad: linear-gradient(135deg, #a855f7 0%, #38bdf8 100%);
+  --grad-subtle: linear-gradient(135deg, rgba(168, 85, 247, 0.18) 0%, rgba(56, 189, 248, 0.18) 100%);
+  --shadow: 0 4px 24px rgba(11, 9, 20, 0.5);
+  --shadow-lg: 0 8px 40px rgba(11, 9, 20, 0.7);
+}
+
+/* 🪸 CREATIVE / SCENERY: Sunset Glow */
+[data-theme="sunset"] {
+  --bg: #120a14;
+  --bg2: #1c1020;
+  --bg3: #27162d;
+  --bg4: #351e3d;
+  --border: rgba(244, 63, 94, 0.20);
+  --border-hover: rgba(244, 63, 94, 0.38);
+  --text: #fff1f2;
+  --text-muted: #fda4af;
+  --text-faint: #fb7185;
+  --purple: #f43f5e;
+  --purple-light: #fb7185;
+  --blue: #f59e0b;
+  --blue-light: #fcd34d;
+  --grad: linear-gradient(135deg, #f43f5e 0%, #f59e0b 100%);
+  --grad-subtle: linear-gradient(135deg, rgba(244, 63, 94, 0.18) 0%, rgba(245, 158, 11, 0.18) 100%);
+  --shadow: 0 4px 24px rgba(18, 10, 20, 0.5);
+  --shadow-lg: 0 8px 40px rgba(18, 10, 20, 0.7);
+}
+
+/* 🍌 FUNNY / PLAYFUL: Banana Punch */
+[data-theme="banana"] {
+  --bg: #121417;
+  --bg2: #1a1d23;
+  --bg3: #232730;
+  --bg4: #2e333f;
+  --border: rgba(250, 204, 21, 0.22);
+  --border-hover: rgba(250, 204, 21, 0.45);
+  --text: #fefce8;
+  --text-muted: #fef08a;
+  --text-faint: #ca8a04;
+  --purple: #eab308;
+  --purple-light: #facc15;
+  --blue: #fb923c;
+  --blue-light: #fdba74;
+  --grad: linear-gradient(135deg, #eab308 0%, #fb923c 100%);
+  --grad-subtle: linear-gradient(135deg, rgba(234, 179, 8, 0.18) 0%, rgba(251, 146, 60, 0.18) 100%);
+  --shadow: 0 4px 24px rgba(18, 20, 23, 0.5);
+  --shadow-lg: 0 8px 40px rgba(18, 20, 23, 0.7);
+}
+
+/* 👾 FUNNY / NOSTALGIA: Retro Arcade */
+[data-theme="arcade"] {
+  --bg: #0b0e14;
+  --bg2: #121722;
+  --bg3: #1a2232;
+  --bg4: #243046;
+  --border: rgba(34, 197, 94, 0.22);
+  --border-hover: rgba(34, 197, 94, 0.45);
+  --text: #f0fdf4;
+  --text-muted: #86efac;
+  --text-faint: #22c55e;
+  --purple: #22c55e;
+  --purple-light: #4ade80;
+  --blue: #06b6d4;
+  --blue-light: #67e8f9;
+  --grad: linear-gradient(135deg, #22c55e 0%, #06b6d4 100%);
+  --grad-subtle: linear-gradient(135deg, rgba(34, 197, 94, 0.18) 0%, rgba(6, 182, 212, 0.18) 100%);
+  --shadow: 0 4px 24px rgba(11, 14, 20, 0.5);
+  --shadow-lg: 0 8px 40px rgba(11, 14, 20, 0.7);
+}
+
+/* 🎨 ARTISTIC / STUDIO: Oil Canvas */
+[data-theme="canvas"] {
+  --bg: #14100c;
+  --bg2: #1e1813;
+  --bg3: #2a221a;
+  --bg4: #372d23;
+  --border: rgba(217, 119, 6, 0.20);
+  --border-hover: rgba(217, 119, 6, 0.38);
+  --text: #fef3c7;
+  --text-muted: #fde68a;
+  --text-faint: #b45309;
+  --purple: #d97706;
+  --purple-light: #f59e0b;
+  --blue: #ea580c;
+  --blue-light: #fb923c;
+  --grad: linear-gradient(135deg, #d97706 0%, #ea580c 100%);
+  --grad-subtle: linear-gradient(135deg, rgba(217, 119, 6, 0.16) 0%, rgba(234, 88, 12, 0.16) 100%);
+  --shadow: 0 4px 24px rgba(20, 16, 12, 0.5);
+  --shadow-lg: 0 8px 40px rgba(20, 16, 12, 0.7);
+}
+
+/* 🌸 ARTISTIC / FLORAL: Sakura Blossom */
+[data-theme="sakura"] {
+  --bg: #130a13;
+  --bg2: #1d101c;
+  --bg3: #291728;
+  --bg4: #372036;
+  --border: rgba(244, 114, 182, 0.20);
+  --border-hover: rgba(244, 114, 182, 0.38);
+  --text: #fdf2f8;
+  --text-muted: #f472b6;
+  --text-faint: #db2777;
+  --purple: #e879f9;
+  --purple-light: #f472b6;
+  --blue: #c084fc;
+  --blue-light: #e9d5ff;
+  --grad: linear-gradient(135deg, #e879f9 0%, #f472b6 100%);
+  --grad-subtle: linear-gradient(135deg, rgba(232, 121, 249, 0.16) 0%, rgba(244, 114, 182, 0.16) 100%);
+  --shadow: 0 4px 24px rgba(19, 10, 19, 0.5);
+  --shadow-lg: 0 8px 40px rgba(19, 10, 19, 0.7);
+}
+
+/* 🏔️ SCENERY / NORTHERN LIGHTS: Nordic Aurora */
+[data-theme="aurora"] {
+  --bg: #071317;
+  --bg2: #0c1d23;
+  --bg3: #132a32;
+  --bg4: #1b3944;
+  --border: rgba(20, 184, 166, 0.22);
+  --border-hover: rgba(20, 184, 166, 0.40);
+  --text: #f0fdfa;
+  --text-muted: #5eead4;
+  --text-faint: #0d9488;
+  --purple: #14b8a6;
+  --purple-light: #2dd4bf;
+  --blue: #0284c7;
+  --blue-light: #38bdf8;
+  --grad: linear-gradient(135deg, #14b8a6 0%, #0284c7 100%);
+  --grad-subtle: linear-gradient(135deg, rgba(20, 184, 166, 0.18) 0%, rgba(2, 132, 199, 0.18) 100%);
+  --shadow: 0 4px 24px rgba(7, 19, 23, 0.5);
+  --shadow-lg: 0 8px 40px rgba(7, 19, 23, 0.7);
+}
+
+/* 🏜️ SCENERY / RED ROCK: Desert Canyon */
+[data-theme="canyon"] {
+  --bg: #150d0a;
+  --bg2: #20140f;
+  --bg3: #2d1c15;
+  --bg4: #3b251c;
+  --border: rgba(249, 115, 22, 0.20);
+  --border-hover: rgba(249, 115, 22, 0.38);
+  --text: #fff7ed;
+  --text-muted: #fdba74;
+  --text-faint: #ea580c;
+  --purple: #ea580c;
+  --purple-light: #f97316;
+  --blue: #eab308;
+  --blue-light: #fde047;
+  --grad: linear-gradient(135deg, #ea580c 0%, #eab308 100%);
+  --grad-subtle: linear-gradient(135deg, rgba(234, 88, 12, 0.18) 0%, rgba(234, 179, 8, 0.18) 100%);
+  --shadow: 0 4px 24px rgba(21, 13, 10, 0.5);
+  --shadow-lg: 0 8px 40px rgba(21, 13, 10, 0.7);
+}
+
 html {
   scroll-behavior: smooth;
 }
